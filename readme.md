@@ -26,7 +26,7 @@ in exact order, every time.
 
 Instead of raw pointer arithmetic, we define a C struct whose fields
 mirror the peripheral register map exactly. The struct is then cast
-to the peripheral base address.
+to the peripheral base address. ST provides a library for it. It is known and cmsis.
 
 This turns raw address manipulation into clean, readable code:
 
