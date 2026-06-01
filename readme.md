@@ -31,10 +31,10 @@ to the peripheral base address.
 This turns raw address manipulation into clean, readable code:
 
 C```
-    GPIOA->MODER |= (1U << 10);
+GPIOA->MODER |= (1U << 10);
 ```
 instead of:
 
 C```
-    *((volatile uint32_t *)(0x40020000 + 0x00)) |= (1U << 10);
+*((volatile uint32_t *)(0x40020000 + 0x00)) |= (1U << 10);
 ```
