@@ -171,10 +171,12 @@ Press Ctrl+Shift+X to open the Extensions panel. Search and install:
 
 ---
 
+---
+
 ## Step 7 — Create Project Folder Structure
 
 ```bash
-mkdir -p ~/stm32-bare-metal/{src,inc,startup,linker}
+mkdir -p ~/stm32-bare-metal/{src,inc,inc/m-profile,startup,linker}
 cd ~/stm32-bare-metal
 ```
 
@@ -190,6 +192,7 @@ Expected output:
 .
 ./src
 ./inc
+./inc/m-profile
 ./startup
 ./linker
 ```
@@ -202,281 +205,120 @@ code ~/stm32-bare-metal
 
 ### Folder Purpose
 
-| Folder    | Contents                                              |
-|-----------|-------------------------------------------------------|
-| src/      | C source files — drivers, main.c                     |
-| inc/      | Header files — register definitions, typedefs        |
-| startup/  | Assembly startup file — runs before main()           |
-| linker/   | Linker script — maps code to Flash and RAM           |
+| Folder        | Contents                                          |
+|---------------|---------------------------------------------------|
+| src/          | C source files — drivers, main.c                 |
+| inc/          | Header files — register definitions, typedefs    |
+| inc/m-profile | ARM Cortex-M profile specific headers            |
+| startup/      | Assembly startup file — runs before main()       |
+| linker/       | Linker script — maps code to Flash and RAM       |
 
 ---
 
-## Complete Toolchain Flow
-
-```
-You write C
-     │
-     ▼
-arm-none-eabi-gcc compiles
-     │
-     ▼
-.elf binary file
-     │
-     ▼
-OpenOCD + ST-LINK flashes to chip
-     │
-     ▼
-Cortex-Debug lets you set breakpoints
-and inspect registers live in VS Code
-```
-
-Nothing is hidden. Every step is a command you explicitly run.
-No IDE magic. No auto-generated code. Full control.
-
----
-
-## Quick Reference — All Commands in Order
+## Step 8 — Get CMSIS Headers From ARM GitHub
 
 ```bash
-# 1. Install toolchain
-sudo apt update && sudo apt upgrade -y
-sudo apt install gcc-arm-none-eabi openocd make -y
-
-# 2. Verify
-arm-none-eabi-gcc --version
-openocd --version
-make --version
-
-# 3. ST-LINK udev rule
-echo 'ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", MODE="0666", GROUP="plugdev"' | sudo tee /etc/udev/rules.d/99-stlink.rules
-sudo udevadm control --reload-rules
-sudo usermod -aG plugdev $USER
-# log out and log back in
-
-# 4. Verify board detection
-lsusb  # look for ID 0483:374b
-
-# 5. Install VS Code
-sudo apt install wget gpg -y
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
-sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
-sudo apt update
-sudo apt install code -y
-
-# 6. Create project structure
-mkdir -p ~/stm32-bare-metal/{src,inc,startup,linker}
-code ~/stm32-bare-metal
-```
-
----
-
-## RAG Metadata
-
-```
-topic: bare-metal STM32 environment setup
-chip: STM32F446RE
-board: NUCLEO-F446RE
-os: Ubuntu Linux 22.04 / 24.04
-compiler: arm-none-eabi-gcc 13.2.1
-debugger: OpenOCD 0.12.0
-ide: VS Code
-extensions: C/C++ Microsoft, Cortex-Debug marus25
-keywords: bare-metal, STM32, arm-none-eabi, OpenOCD, ST-LINK, udev, toolchain
-```
-
-# Project Structure & Build System Setup
-## (Append to environment_setup.md)
-
----
-
-## Step 8 — Get CMSIS Headers from ARM
-
-CMSIS (Cortex Microcontroller Software Interface Standard) headers
-provide core Cortex-M4 definitions — SysTick, NVIC, core registers.
-These are maintained by ARM directly on GitHub.
-
-You do not need the entire repository. Clone it and copy only what
-you need:
-
-```bash
-# Clone ARM CMSIS into a temporary location
 git clone --depth 1 https://github.com/ARM-software/CMSIS_6.git /tmp/cmsis
 
-# Copy only the Cortex-M core headers into your project
-cp /tmp/cmsis/CMSIS/Core/Include/core_cm4.h         ~/stm32-bare-metal/inc/
-cp /tmp/cmsis/CMSIS/Core/Include/cmsis_gcc.h         ~/stm32-bare-metal/inc/
-cp /tmp/cmsis/CMSIS/Core/Include/cmsis_compiler.h    ~/stm32-bare-metal/inc/
-cp /tmp/cmsis/CMSIS/Core/Include/cmsis_version.h     ~/stm32-bare-metal/inc/
+# Core headers
+cp /tmp/cmsis/CMSIS/Core/Include/core_cm4.h          ~/stm32-bare-metal/inc/
+cp /tmp/cmsis/CMSIS/Core/Include/cmsis_gcc.h          ~/stm32-bare-metal/inc/
+cp /tmp/cmsis/CMSIS/Core/Include/cmsis_compiler.h     ~/stm32-bare-metal/inc/
+cp /tmp/cmsis/CMSIS/Core/Include/cmsis_version.h      ~/stm32-bare-metal/inc/
 
-# Copy M-profile specific headers
-mkdir -p ~/stm32-bare-metal/include/m-profile
+# M-profile specific headers
 cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv7m_cachel1.h  ~/stm32-bare-metal/inc/m-profile/
 cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv7m_mpu.h      ~/stm32-bare-metal/inc/m-profile/
 cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv8m_mpu.h      ~/stm32-bare-metal/inc/m-profile/
 cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv8m_pmu.h      ~/stm32-bare-metal/inc/m-profile/
 cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv81m_pac.h     ~/stm32-bare-metal/inc/m-profile/
 
-# Clean up the temporary clone
 rm -rf /tmp/cmsis
 ```
 
 ---
 
-## What Each Header File Does
+## Step 9 — Get ST Device Files From ST GitHub
 
-### Files You Must Have
+```bash
+git clone --depth 1 https://github.com/STMicroelectronics/cmsis-device-f4.git /tmp/stm32f4
 
-| File                | Purpose                                              |
-|---------------------|------------------------------------------------------|
-| core_cm4.h          | Cortex-M4 core — NVIC, SysTick, FPU, core registers |
-| cmsis_gcc.h         | GCC-specific compiler intrinsics and attributes      |
-| cmsis_compiler.h    | Compiler-agnostic wrapper — includes cmsis_gcc.h     |
-| cmsis_version.h     | CMSIS version definitions                            |
+# Chip and family headers
+cp /tmp/stm32f4/Include/stm32f4xx.h          ~/stm32-bare-metal/inc/
+cp /tmp/stm32f4/Include/stm32f446xx.h        ~/stm32-bare-metal/inc/
+cp /tmp/stm32f4/Include/system_stm32f4xx.h   ~/stm32-bare-metal/inc/
 
-### Files You Write Yourself
+# System init source
+cp /tmp/stm32f4/Source/Templates/system_stm32f4xx.c   ~/stm32-bare-metal/src/
 
-| File                | Purpose                                              |
-|---------------------|------------------------------------------------------|
-| stm32f446xx.h       | Chip-specific — base addresses, TypeDefs, defines    |
-| stm32f4xx.h         | Family header — includes stm32f446xx.h               |
-| gpio.h              | GPIO driver declarations                             |
-| system_stm32f4xx.h  | System clock init declaration                        |
+# Startup file
+cp /tmp/stm32f4/Source/Templates/gcc/startup_stm32f446xx.s   ~/stm32-bare-metal/startup/
 
-### stm32f4xx.h — The Family Header
-
-This file's only job is to include the correct chip-specific header.
-This is the portability layer — change one line here to target a
-different STM32F4 chip:
-
-```c
-#ifndef STM32F4XX_H
-#define STM32F4XX_H
-
-/* Change this line to target a different chip in the F4 family */
-#include "stm32f446xx.h"
-
-#endif
+rm -rf /tmp/stm32f4
 ```
 
-### system_stm32f4xx.h — System Clock Declaration
+### Get Linker Script From ST CubeF4
 
-```c
-#ifndef SYSTEM_STM32F4XX_H
-#define SYSTEM_STM32F4XX_H
+```bash
+git clone --depth 1 https://github.com/STMicroelectronics/STM32CubeF4.git /tmp/cubef4
 
-#include <stdint.h>
+cp "/tmp/cubef4/Projects/NUCLEO-F446RE/Templates/STM32CubeIDE/STM32F446RETX_FLASH.ld" \
+   ~/stm32-bare-metal/linker/stm32f446re.ld
 
-/* Current system clock frequency — updated by SystemInit() */
-extern uint32_t SystemCoreClock;
-
-/* Called by startup file before main() — initializes system clock */
-void SystemInit(void);
-
-#endif
+rm -rf /tmp/cubef4
 ```
 
----
+### What Each File Does
 
-## Complete include/ Folder Structure
+| File | Source | Purpose |
+|------|--------|---------|
+| `core_cm4.h` | ARM CMSIS | Cortex-M4 core — NVIC, SysTick, FPU |
+| `cmsis_gcc.h` | ARM CMSIS | GCC compiler intrinsics |
+| `cmsis_compiler.h` | ARM CMSIS | Compiler-agnostic wrapper |
+| `cmsis_version.h` | ARM CMSIS | CMSIS version definitions |
+| `stm32f4xx.h` | ST GitHub | Family header — includes stm32f446xx.h |
+| `stm32f446xx.h` | ST GitHub | Chip header — all peripheral definitions |
+| `system_stm32f4xx.h` | ST GitHub | SystemInit declaration |
+| `system_stm32f4xx.c` | ST GitHub | SystemInit implementation |
+| `startup_stm32f446xx.s` | ST GitHub | Startup — vector table, RAM init, calls main |
+| `stm32f446re.ld` | ST CubeF4 | Linker script — Flash and RAM regions |
+| `gpio.h` | You write | GPIO driver declarations |
+| `gpio.c` | You write | GPIO driver implementation |
+| `main.c` | You write | Your application |
 
-```
-include/
-├── m-profile/
-│   ├── armv7m_cachel1.h     ← from ARM CMSIS GitHub
-│   ├── armv7m_mpu.h         ← from ARM CMSIS GitHub
-│   ├── armv8m_mpu.h         ← from ARM CMSIS GitHub
-│   ├── armv8m_pmu.h         ← from ARM CMSIS GitHub
-│   └── armv81m_pac.h        ← from ARM CMSIS GitHub
-├── cmsis_compiler.h         ← from ARM CMSIS GitHub
-├── cmsis_gcc.h              ← from ARM CMSIS GitHub
-├── cmsis_version.h          ← from ARM CMSIS GitHub
-├── core_cm4.h               ← from ARM CMSIS GitHub
-├── gpio.h                   ← you write this
-├── stm32f4xx.h              ← you write this (family header)
-├── stm32f446xx.h            ← you write this (chip header)
-└── system_stm32f4xx.h       ← you write this
-```
-
----
-
-## Step 9 — Startup File and Linker Script
-
-### Do Separate Folders Matter
-
-No. The compiler and linker do not care about folder names. They only
-care about the paths you give them in the Makefile. Your project
-worked without separate folders because the Makefile pointed directly
-to the files wherever they were.
-
-Separate folders are a cleanliness convention, not a requirement.
-Both structures below are equally valid:
+### Complete Project Structure After Steps 7, 8, 9
 
 ```
-# Flat structure — works fine
-project/
-├── startup_stm32f446xx.s
-├── stm32f446re.ld
-├── main.c
-└── Makefile
-
-# Organized structure — also works fine
-project/
-├── startup/
-│   └── startup_stm32f446xx.s
-├── linker/
-│   └── stm32f446re.ld
+stm32-bare-metal/
+├── inc/
+│   ├── m-profile/
+│   │   ├── armv7m_cachel1.h       ← ARM CMSIS GitHub
+│   │   ├── armv7m_mpu.h           ← ARM CMSIS GitHub
+│   │   ├── armv8m_mpu.h           ← ARM CMSIS GitHub
+│   │   ├── armv8m_pmu.h           ← ARM CMSIS GitHub
+│   │   └── armv81m_pac.h          ← ARM CMSIS GitHub
+│   ├── cmsis_compiler.h           ← ARM CMSIS GitHub
+│   ├── cmsis_gcc.h                ← ARM CMSIS GitHub
+│   ├── cmsis_version.h            ← ARM CMSIS GitHub
+│   ├── core_cm4.h                 ← ARM CMSIS GitHub
+│   ├── stm32f4xx.h                ← ST GitHub
+│   ├── stm32f446xx.h              ← ST GitHub
+│   ├── system_stm32f4xx.h         ← ST GitHub
+│   └── gpio.h                     ← you write this
 ├── src/
-│   └── main.c
-└── Makefile
+│   ├── system_stm32f4xx.c         ← ST GitHub
+│   ├── gpio.c                     ← you write this
+│   └── main.c                     ← you write this
+├── startup/
+│   └── startup_stm32f446xx.s      ← ST GitHub
+├── linker/
+│   └── stm32f446re.ld             ← ST CubeF4 GitHub
+└── Makefile                       ← you write this
 ```
-
-The only difference is the paths written in the Makefile.
-
-### What the Startup File Does
-
-The startup file runs before main(). It is written in assembly and
-performs three jobs:
-
-```
-1. Define the vector table — list of function pointers for every
-   possible interrupt and exception handler
-
-2. Initialize RAM — copy initial values for global variables from
-   Flash into SRAM (the .data section copy)
-
-3. Zero BSS — clear the .bss section (uninitialized globals) to 0
-
-4. Call main()
-```
-
-Without the startup file, global variables have garbage values when
-main() runs and interrupt handlers have no address to jump to.
-
-### What the Linker Script Does
-
-The linker script answers one question the compiler cannot — where
-does each piece of code and data physically live on this chip?
-
-```
-Flash starts at 0x08000000 — code goes here
-SRAM  starts at 0x20000000 — variables go here
-Stack grows downward from top of SRAM
-```
-
-The linker script defines these regions and tells the linker exactly
-how to arrange your compiled code and data inside them.
-
----
 
 ---
 
 ## Step 10 — The Makefile
-
-The Makefile is the build system. It defines exactly how your source
-files are compiled, linked, and flashed to the chip. Without it you
-would have to type the full compiler command manually every time you
-change a single line of code.
 
 ```makefile
 #------------------------------------------------------------------
@@ -500,14 +342,14 @@ CFLAGS += -O0                        # no optimization during development
 CFLAGS += -Wall                      # all warnings
 CFLAGS += -Wextra                    # extra warnings
 CFLAGS += -std=c11                   # C11 standard
-CFLAGS += -nostdlib                  # no standard C library — we have no OS
+CFLAGS += -nostdlib                  # no standard C library
 CFLAGS += -ffreestanding             # freestanding environment
 CFLAGS += -g                         # debug symbols for Cortex-Debug
-CFLAGS += -I./inc	            	 # header file search path
+CFLAGS += -I./inc                    # header file search path
 
 # Linker flags
 LDFLAGS  = $(CPUFLAGS)
-LDFLAGS += -T linker/stm32f446re.ld  # linker script location
+LDFLAGS += -T linker/stm32f446re.ld  # linker script
 LDFLAGS += -nostdlib
 LDFLAGS += -Wl,--gc-sections         # strip unused code sections
 
@@ -516,10 +358,10 @@ SRCS  = src/main.c
 SRCS += src/gpio.c
 SRCS += src/system_stm32f4xx.c
 
-# Startup file — assembly, runs before main()
+# Startup file
 STARTUP = startup/startup_stm32f446xx.s
 
-# Object files derived from source files
+# Object files
 OBJS  = $(SRCS:.c=.o)
 OBJS += $(STARTUP:.s=.o)
 
@@ -527,33 +369,26 @@ OBJS += $(STARTUP:.s=.o)
 # Build Rules
 #------------------------------------------------------------------
 
-# Default target — builds .elf and .bin
 all: $(TARGET).elf $(TARGET).bin
 	$(SIZE) $(TARGET).elf
 
-# Link all object files into final .elf
 $(TARGET).elf: $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^
 
-# Convert .elf to raw binary
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
-# Compile each C source file to object file
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-# Assemble startup file to object file
 %.o: %.s
 	$(CC) $(CPUFLAGS) -c -o $@ $<
 
-# Flash binary to board using OpenOCD
 flash: $(TARGET).bin
 	openocd -f interface/stlink.cfg \
 	        -f target/stm32f4x.cfg \
 	        -c "program $(TARGET).bin 0x08000000 verify reset exit"
 
-# Remove all build artifacts
 clean:
 	rm -f $(OBJS) $(TARGET).elf $(TARGET).bin
 
@@ -572,58 +407,51 @@ clean:
 | `-ffreestanding` | No assumptions about standard environment |
 | `-Wl,--gc-sections` | Strip unused functions from final binary |
 | `-g` | Include debug symbols for VS Code debugger |
-
-### Flat Structure vs Subfolder Structure
-
-If you keep startup and linker files in the root folder instead of
-subfolders, change only these two lines:
-
-| Item | With Subfolders | Flat Structure |
-|------|-----------------|----------------|
-| Startup | `startup/startup_stm32f446xx.s` | `startup_stm32f446xx.s` |
-| Linker | `-T linker/stm32f446re.ld` | `-T stm32f446re.ld` |
-
-Everything else in the Makefile stays identical.
+| `-I./inc` | Tell compiler where to find header files |
 
 ### Build Commands
 
 ```bash
-# Compile and link everything
 make
 ```
 
-Expected terminal output:
+Expected output:
+
 ```
-arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb ... -c -o src/main.o src/main.c
-arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb ... -c -o src/gpio.o src/gpio.c
-arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb ... -c -o startup/startup_stm32f446xx.o startup/startup_stm32f446xx.s
-arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb ... -o blink.elf src/main.o src/gpio.o startup/startup_stm32f446xx.o
+arm-none-eabi-gcc ... -c -o src/main.o src/main.c
+arm-none-eabi-gcc ... -c -o src/gpio.o src/gpio.c
+arm-none-eabi-gcc ... -c -o src/system_stm32f4xx.o src/system_stm32f4xx.c
+arm-none-eabi-gcc ... -c -o startup/startup_stm32f446xx.o startup/startup_stm32f446xx.s
+arm-none-eabi-gcc ... -o blink.elf src/main.o src/gpio.o src/system_stm32f4xx.o startup/startup_stm32f446xx.o
 arm-none-eabi-objcopy -O binary blink.elf blink.bin
 arm-none-eabi-size blink.elf
    text    data     bss     dec     hex filename
     412       0       0     412     19c blink.elf
 ```
 
-What each column in the size output means:
-
-| Column | Meaning |
-|--------|---------|
-| text | Code and read-only data — goes into Flash |
-| data | Initialized global variables — copied to SRAM at startup |
-| bss | Uninitialized globals — zeroed in SRAM at startup |
-| dec | Total size in decimal bytes |
-
 ```bash
-# Remove all compiled files and start fresh
 make clean
 ```
 
-Expected terminal output:
+Expected output:
+
 ```
-rm -f src/main.o src/gpio.o startup/startup_stm32f446xx.o blink.elf blink.bin
+rm -f src/main.o src/gpio.o src/system_stm32f4xx.o startup/startup_stm32f446xx.o blink.elf blink.bin
 ```
 
 ---
+
+## RAG Metadata
+
+```
+topic: STM32 bare-metal project structure, CMSIS setup, Makefile
+chip: STM32F446RE
+board: NUCLEO-F446RE
+os: Ubuntu Linux
+folder: inc not include
+keywords: CMSIS, Makefile, linker script, startup file, arm-none-eabi-gcc,
+          project structure, build system, OpenOCD, ST GitHub, ARM GitHub
+```
 
 ## Step 11 — Blink Example and Flashing to the Board
 
