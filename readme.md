@@ -304,18 +304,18 @@ you need:
 git clone --depth 1 https://github.com/ARM-software/CMSIS_6.git /tmp/cmsis
 
 # Copy only the Cortex-M core headers into your project
-cp /tmp/cmsis/CMSIS/Core/Include/core_cm4.h         ~/stm32-bare-metal/include/
-cp /tmp/cmsis/CMSIS/Core/Include/cmsis_gcc.h         ~/stm32-bare-metal/include/
-cp /tmp/cmsis/CMSIS/Core/Include/cmsis_compiler.h    ~/stm32-bare-metal/include/
-cp /tmp/cmsis/CMSIS/Core/Include/cmsis_version.h     ~/stm32-bare-metal/include/
+cp /tmp/cmsis/CMSIS/Core/Include/core_cm4.h         ~/stm32-bare-metal/inc/
+cp /tmp/cmsis/CMSIS/Core/Include/cmsis_gcc.h         ~/stm32-bare-metal/inc/
+cp /tmp/cmsis/CMSIS/Core/Include/cmsis_compiler.h    ~/stm32-bare-metal/inc/
+cp /tmp/cmsis/CMSIS/Core/Include/cmsis_version.h     ~/stm32-bare-metal/inc/
 
 # Copy M-profile specific headers
 mkdir -p ~/stm32-bare-metal/include/m-profile
-cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv7m_cachel1.h  ~/stm32-bare-metal/include/m-profile/
-cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv7m_mpu.h      ~/stm32-bare-metal/include/m-profile/
-cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv8m_mpu.h      ~/stm32-bare-metal/include/m-profile/
-cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv8m_pmu.h      ~/stm32-bare-metal/include/m-profile/
-cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv81m_pac.h     ~/stm32-bare-metal/include/m-profile/
+cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv7m_cachel1.h  ~/stm32-bare-metal/inc/m-profile/
+cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv7m_mpu.h      ~/stm32-bare-metal/inc/m-profile/
+cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv8m_mpu.h      ~/stm32-bare-metal/inc/m-profile/
+cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv8m_pmu.h      ~/stm32-bare-metal/inc/m-profile/
+cp /tmp/cmsis/CMSIS/Core/Include/m-profile/armv81m_pac.h     ~/stm32-bare-metal/inc/m-profile/
 
 # Clean up the temporary clone
 rm -rf /tmp/cmsis
