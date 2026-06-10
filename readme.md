@@ -503,7 +503,7 @@ CFLAGS += -std=c11                   # C11 standard
 CFLAGS += -nostdlib                  # no standard C library — we have no OS
 CFLAGS += -ffreestanding             # freestanding environment
 CFLAGS += -g                         # debug symbols for Cortex-Debug
-CFLAGS += -I./include                # header file search path
+CFLAGS += -I./inc	            	 # header file search path
 
 # Linker flags
 LDFLAGS  = $(CPUFLAGS)
