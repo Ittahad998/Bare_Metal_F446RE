@@ -173,6 +173,41 @@ Press Ctrl+Shift+X to open the Extensions panel. Search and install:
 
 ---
 
+## Quick Reference — All Commands in Order
+
+```bash
+# 1. Install toolchain
+sudo apt update && sudo apt upgrade -y
+sudo apt install gcc-arm-none-eabi openocd make -y
+
+# 2. Verify
+arm-none-eabi-gcc --version
+openocd --version
+make --version
+
+# 3. ST-LINK udev rule
+echo 'ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", MODE="0666", GROUP="plugdev"' | sudo tee /etc/udev/rules.d/99-stlink.rules
+sudo udevadm control --reload-rules
+sudo usermod -aG plugdev $USER
+# log out and log back in
+
+# 4. Verify board detection
+lsusb  # look for ID 0483:374b
+
+# 5. Install VS Code
+sudo apt install wget gpg -y
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+sudo install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/
+sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
+sudo apt update
+sudo apt install code -y
+
+# 6. Create project structure
+mkdir -p ~/stm32-bare-metal/{src,inc,startup,linker}
+code ~/stm32-bare-metal
+```
+
+
 ## Step 7 — Create Project Folder Structure
 
 ```bash
