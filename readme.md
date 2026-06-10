@@ -645,6 +645,9 @@ the GPIO library we built.
 #define GPIOA_MODER     (*(volatile uint32_t *)(GPIOA_BASE + 0x00))
 #define GPIOA_ODR       (*(volatile uint32_t *)(GPIOA_BASE + 0x14))
 
+void SystemInit(void) {}   /* called by startup before main()     */
+void _init(void)      {}   /* called by __libc_init_array()       */
+
 static void delay(volatile uint32_t count)
 {
     while (count--);
