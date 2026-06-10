@@ -216,6 +216,11 @@ code ~/stm32-bare-metal
 ---
 
 ## Step 8 — Get CMSIS Headers From ARM GitHub
+CMSIS (Cortex Microcontroller Software Interface Standard) headers
+provide core Cortex-M4 definitions — SysTick, NVIC, core registers.
+These are maintained by ARM directly on GitHub.
+You do not need the entire repository. Clone it and copy only what
+you need:
 
 ```bash
 git clone --depth 1 https://github.com/ARM-software/CMSIS_6.git /tmp/cmsis
@@ -237,6 +242,7 @@ rm -rf /tmp/cmsis
 ```
 
 ---
+
 
 ## Step 9 — Get ST Device Files From ST GitHub
 
