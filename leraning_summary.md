@@ -1,9 +1,7 @@
 
-================================================================================
 COMPLETE LEARNING SUMMARY
 STM32F446RE Bare-Metal Embedded Systems
 From Zero to Hardware Driver Understanding
-================================================================================
 
 Board  : STM32 Nucleo-64 (NUCLEO-F446RE)
 Chip   : STM32F446RE (ARM Cortex-M4, up to 180MHz, 512KB Flash, 128KB SRAM)
@@ -11,9 +9,9 @@ Clock  : 16MHz HSI internal oscillator (default at reset)
 Tools  : STM32CubeIDE, arm-none-eabi-gcc, RM0390 Reference Manual,
          STM32F446RE Datasheet, DUI0553 Cortex-M4 User Guide
 
-================================================================================
+
 THE FOUNDATIONAL SKILL YOU BUILT
-================================================================================
+
 
 Before writing any code, you learned to navigate three documents:
 
